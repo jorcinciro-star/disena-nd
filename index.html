@@ -97,6 +97,212 @@
       min-height: 100vh;
       min-height: 100svh;
     }
+    /* Secciones a pantalla completa: alto mínimo de la ventana, contenido centrado verticalmente.
+       min-height (no height) para que las secciones largas crezcan en celular sin cortarse. */
+    .screen-section {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .screen-section > * {
+      width: 100%;
+    }
+    /* Sección de módulos compacta: en escritorio entra en una pantalla */
+    .modulos-lista {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(10px, 1.4vh, 12px);
+    }
+    .modulo-card {
+      padding-top: clamp(8px, 1.1vh, 14px);
+      padding-bottom: clamp(8px, 1.1vh, 14px);
+    }
+    .modulo-bajada {
+      font-size: clamp(15px, 2vh, 16px);
+      line-height: 1.4;
+    }
+    .modulo-items {
+      font-size: clamp(13px, 1.75vh, 14px);
+      line-height: 1.4;
+    }
+    .programa-head {
+      margin-bottom: 2.5rem;
+    }
+    /* Acordeón de módulos (solo se activa por JS en escritorio con poca altura) */
+    .modulo-icon {
+      display: none;
+    }
+    .modulos-acordeon .modulo-icon {
+      display: block;
+    }
+    .modulos-acordeon .modulo-card {
+      cursor: pointer;
+    }
+    .modulos-acordeon .modulo-head:focus-visible {
+      outline: 2px solid #4E6071;
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+    @media (min-width: 1024px) {
+      /* 64px = alto del header fijo, para que el contenido no quede debajo */
+      #programa {
+        padding-top: calc(64px + clamp(12px, 2vh, 40px));
+        padding-bottom: clamp(16px, 2.5vh, 48px);
+      }
+      #programa .programa-head {
+        margin-bottom: clamp(14px, 2.2vh, 32px);
+      }
+    }
+    /* Flotación de las fotos de "El mejor espacio es el que integra a todos".
+       .flota envuelve cada foto: se mueve solo con transform y lleva dos capas de sombra
+       (::before cercana y definida, ::after lejana y difusa) que cruzan su opacidad al subir y bajar. */
+    .flota {
+      --flotar-y: -8px;
+      position: relative;
+      isolation: isolate;
+      animation: flotar var(--flota-dur, 7s) ease-in-out var(--flota-delay, 0s) infinite;
+      will-change: transform;
+    }
+    .flota::before,
+    .flota::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: 0.75rem;
+      transform: rotate(var(--flota-rot, 0deg));
+      pointer-events: none;
+      animation: var(--flota-dur, 7s) ease-in-out var(--flota-delay, 0s) infinite;
+    }
+    .flota::before {
+      box-shadow: 0 2px 5px rgba(13, 27, 42, 0.10);
+      opacity: 1;
+      animation-name: flota-sombra-cerca;
+    }
+    .flota::after {
+      box-shadow: 0 16px 30px -8px rgba(13, 27, 42, 0.13);
+      opacity: 0.35;
+      animation-name: flota-sombra-lejos;
+    }
+    /* Duraciones y desfases distintos para que no floten sincronizadas */
+    .flota-1 { --flota-dur: 7s; --flota-delay: -2.1s; --flota-rot: 1deg; }
+    .flota-2 { --flota-dur: 6s; --flota-delay: -4.4s; --flota-rot: -2deg; }
+    .flota-3 { --flota-dur: 8s; --flota-delay: -0.9s; --flota-rot: 3deg; }
+    @media (max-width: 767px) {
+      .flota { --flotar-y: -4.5px; }
+    }
+    @keyframes flotar {
+      0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+      50% { transform: translateY(var(--flotar-y)) rotate(0.4deg); }
+    }
+    @keyframes flota-sombra-cerca {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    @keyframes flota-sombra-lejos {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 1; }
+    }
+    /* Fuera de pantalla se pausa (lo maneja un IntersectionObserver) */
+    .flota-pausa,
+    .flota-pausa::before,
+    .flota-pausa::after {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flota, .flota::before, .flota::after { animation: none; }
+      .flota { will-change: auto; }
+      .flota::before, .flota::after { display: none; }
+    }
+    /* Recorrido animado de la captura del checklist (sección de módulos).
+       La captura ocupa todo el ancho del marco; JS calcula --recorrido (alto imagen − alto marco),
+       la duración y las paradas del @keyframes "captura-recorrer" según el alto real. */
+    .captura-ventana {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    }
+    .captura-recorrido {
+      display: block;
+      width: 100%;
+      max-width: none;
+      height: auto;
+      will-change: transform, opacity;
+    }
+    .captura-anim .captura-recorrido {
+      animation: captura-recorrer var(--captura-dur, 40s) linear infinite;
+    }
+    .captura-pausa .captura-recorrido {
+      animation-play-state: paused;
+    }
+    @media (hover: hover) {
+      #captura-marco:hover .captura-recorrido { animation-play-state: paused; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .captura-anim .captura-recorrido { animation: none; transform: none; opacity: 1; }
+    }
+    /* Cinta en bucle de "Marco regulatorio" */
+    .cinta {
+      --cinta-gap: 2rem;
+      --cinta-fade: clamp(2rem, 8vw, 8rem);
+      overflow: hidden;
+      padding-block: 0.5rem;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--cinta-fade), #000 calc(100% - var(--cinta-fade)), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, #000 var(--cinta-fade), #000 calc(100% - var(--cinta-fade)), transparent 100%);
+    }
+    @media (min-width: 640px) {
+      .cinta { --cinta-gap: 3.5rem; }
+    }
+    .cinta-pista {
+      display: flex;
+      width: max-content;
+      animation: cinta-desplazar var(--cinta-duracion, 25s) linear infinite;
+    }
+    /* Separación uniforme: gap entre insignias dentro del grupo y padding-right al final del grupo,
+       así el -50% de la pista es exactamente un grupo y el empalme no tiene saltos */
+    .cinta-grupo {
+      display: flex;
+      flex-shrink: 0;
+      gap: var(--cinta-gap);
+      padding: 0 var(--cinta-gap) 0 0;
+      margin: 0;
+      list-style: none;
+    }
+    @keyframes cinta-desplazar {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (hover: hover) {
+      .cinta:hover .cinta-pista { animation-play-state: paused; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cinta { -webkit-mask-image: none; mask-image: none; }
+      .cinta-pista { animation: none; width: auto; justify-content: center; }
+      .cinta-grupo { flex-wrap: wrap; justify-content: center; padding: 0 1.25rem; row-gap: 0.75rem; }
+      .cinta-copia, .cinta-extra { display: none; }
+    }
+    /* Selector Para Arquitectos / Para Centros y Clínicas */
+    .pill-tab {
+      background-color: transparent;
+      color: #1A1A1A;
+      transition: background-color 0.4s ease-out, color 0.4s ease-out, box-shadow 0.4s ease-out;
+    }
+    .pill-tab:hover {
+      background-color: #FFFFFF;
+    }
+    .pill-tab[aria-pressed="true"] {
+      background-color: #0D1B2A;
+      color: #FFFFFF;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    }
+    .pill-tab:focus-visible {
+      outline: 2px solid #4E6071;
+      outline-offset: 2px;
+    }
     @media print {
       .motion-ok [data-hero],
       .motion-ok [data-reveal] { opacity: 1 !important; }
@@ -111,6 +317,18 @@
       }
     }
   </style>
+<!-- GoatCounter: estadísticas de visitas sin cookies — https://www.goatcounter.com -->
+<script>
+    // ⚠️ Escribí entre las comillas SOLO tu código de GoatCounter (ej. 'disenand'), sin https ni .goatcounter.com
+    var GOATCOUNTER_CODIGO = 'disenand';
+    if (GOATCOUNTER_CODIGO) {
+      var gc = document.createElement('script');
+      gc.async = true;
+      gc.src = 'https://gc.zgo.at/count.js';
+      gc.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER_CODIGO + '.goatcounter.com/count');
+      document.head.appendChild(gc);
+    }
+  </script>
 <!-- Motion (vanilla) — https://motion.dev -->
 <script defer src="https://cdn.jsdelivr.net/npm/motion@12.23.24/dist/motion.js"></script>
 <script>
@@ -139,7 +357,7 @@
 </a>
 <!-- Right Action CTA (Slate Blue Pill) -->
 <div class="flex items-center gap-3">
-<a class="min-touch-target inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-brand-navy bg-brand-accent hover:bg-brand-accent-hover border border-brand-border rounded-full transition shadow-sm" data-lift="" href="#preinscripcion">
+<a class="min-touch-target inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-brand-navy bg-brand-accent hover:bg-brand-accent-hover border border-brand-border rounded-full transition shadow-sm" data-goatcounter-click="clic-preinscribirme-header" data-goatcounter-title="Preinscribirme (header)" data-lift="" href="#preinscripcion">
           Preinscribirme
           <svg class="w-3.5 h-3.5 ml-1 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
 </a>
@@ -152,7 +370,7 @@
 <section class="hero-screen relative flex flex-col bg-brand-accent overflow-hidden">
 <div class="flex-1 flex items-center w-full max-w-7xl mx-auto px-5 sm:px-8 pt-28 pb-24 sm:pt-32">
 <div class="max-w-5xl">
-<span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-brand-navy font-bold block mb-5 sm:mb-8" data-hero="">PRIMERA EDICIÓN 2025</span>
+<span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-brand-navy font-bold block mb-5 sm:mb-8" data-hero="">PRIMERA EDICIÓN 2027</span>
 <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-semibold tracking-tighter leading-[1.02] text-brand-charcoal" style="text-wrap: balance;" data-hero="">
             ¿Tu proyecto pasaría la habilitación del BPS?
           </h1>
@@ -160,7 +378,7 @@
             Para un centro terapéutico, es la diferencia entre abrir o no.
           </p>
 <div class="mt-8 sm:mt-12 flex flex-wrap items-center gap-x-5 gap-y-3" data-hero="">
-<a class="min-touch-target inline-flex items-center px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-brand-navy hover:bg-brand-charcoal border border-brand-navy transition shadow-sm" data-lift="" href="#preinscripcion">
+<a class="min-touch-target inline-flex items-center px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-brand-navy hover:bg-brand-charcoal border border-brand-navy transition shadow-sm" data-goatcounter-click="clic-quiero-preinscribirme-portada" data-goatcounter-title="Quiero preinscribirme (portada)" data-lift="" href="#preinscripcion">
               Quiero preinscribirme
               <svg class="w-4 h-4 ml-1.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
 </a>
@@ -182,86 +400,62 @@
 </div>
 </section>
 <!-- ========================================================= -->
-<!-- 2. HERO: IMPACTFUL EDITORIAL COMPOSITION                   -->
+<!-- 2. QUÉ ES DISEÑA ND (texto grande centrado)               -->
 <!-- ========================================================= -->
-<section class="pt-16 pb-12 sm:pt-24 sm:pb-16 overflow-hidden scroll-mt-14" id="taller">
-<!-- Bleed / High-impact Image with bottom integrated title -->
-<div class="px-3 sm:px-6 max-w-7xl mx-auto">
-<div class="relative w-full aspect-[4/5] sm:aspect-[16/10] rounded-2xl overflow-hidden shadow-sm" data-reveal="">
-<img alt="Espacio arquitectónico con luz natural y diseño sensorial" class="w-full h-full object-cover object-center" src="img/hero-espacio-neuroinclusivo.webp">
-<!-- Editorial dark gradient overlay -->
-<div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10"></div>
-<!-- Editorial Headline -->
-<div class="absolute inset-x-0 bottom-0 p-5 sm:p-10 z-10 text-white">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-mono uppercase tracking-wider text-brand-accent mb-3 border border-white/20">
-<span class="w-1.5 h-1.5 rounded-full bg-brand-accent"></span>
-            1ª Edición · Taller Proyectual
-          </span>
-<h2 class="font-display text-3xl sm:text-6xl font-medium tracking-tighter leading-[1.08] max-w-3xl text-white">
-            Espacios que se sienten bien y funcionan mejor
-          </h2>
-</div>
-</div>
-</div>
-<!-- Editorial Subtitle + Floating Inset Image Block -->
-<div class="max-w-7xl mx-auto px-5 sm:px-8 mt-10 sm:mt-16">
-<div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-<!-- Floating Thumbnail -->
-<div class="md:col-span-5 order-2 md:order-1">
-<div class="relative rounded-xl overflow-hidden border border-brand-border bg-white shadow-sm" data-lift="" data-reveal="">
-<img alt="Muestra de textura y rincón calmo" class="w-full h-56 object-cover" src="img/paleta-materiales.webp">
-<div class="p-3 bg-white flex items-center justify-between text-xs text-brand-muted font-mono border-t border-brand-border">
-<span class="">Dimensión Acústica &amp; Lumínica</span>
-<span class="text-brand-navy font-semibold">UY · 2025</span>
-</div>
-</div>
-</div>
-<!-- Editorial Description Paragraph -->
-<div class="md:col-span-7 order-1 md:order-2">
-<p class="font-display text-lg sm:text-2xl sm:leading-relaxed text-brand-charcoal font-normal tracking-tight" data-reveal="">
-            Diseña ND capacita a arquitectos para proyectar espacios sensoriales y neurodivergentes verificables en Uruguay, uniendo las exigencias de MSP y BPS con el rigor técnico y bienestar del usuario.
+<section class="screen-section py-16 sm:py-24 bg-brand-bg scroll-mt-14" id="taller">
+<div class="max-w-7xl mx-auto px-5 sm:px-8 text-center">
+<p class="font-display text-2xl sm:text-4xl lg:text-5xl leading-snug sm:leading-tight text-brand-charcoal font-normal tracking-tight max-w-4xl mx-auto" style="text-wrap: balance;" data-reveal="">
+            Diseña ND capacita a arquitectos para proyectar espacios para niños neurodivergentes en Uruguay, uniendo las exigencias de MSP y BPS con el rigor técnico y el bienestar del usuario.
           </p>
-<div class="mt-5 flex items-center gap-3" data-reveal="">
-<a class="min-touch-target inline-flex items-center px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-navy bg-brand-accent hover:bg-brand-accent-hover transition border border-brand-border shadow-sm" data-lift="" href="#preinscripcion">
+<div class="mt-8 sm:mt-12 flex justify-center" data-reveal="">
+<a class="min-touch-target inline-flex items-center px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-brand-navy bg-brand-accent hover:bg-brand-accent-hover transition border border-brand-border shadow-sm" data-goatcounter-click="clic-quiero-preinscribirme-taller" data-goatcounter-title="Quiero preinscribirme (sección taller)" data-lift="" href="#preinscripcion">
               Quiero preinscribirme
             </a>
-<a class="text-xs font-medium text-brand-muted hover:text-brand-charcoal underline underline-offset-4" href="#programa">
-              Ver programa 8h
-            </a>
-</div>
-</div>
 </div>
 </div>
 </section>
 <!-- ========================================================= -->
 <!-- 3. LOGOS / MARCAS / ALIANZAS NORMATIVAS                   -->
 <!-- ========================================================= -->
-<section class="py-8 border-y border-brand-border bg-white">
+<section class="screen-section py-16 border-y border-brand-border bg-white">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <p class="text-[10px] font-mono uppercase tracking-widest text-brand-muted text-center mb-4" data-reveal="">
         Marco regulatorio y entidades de referencia técnica
       </p>
-<!-- Subtly styled monochrome institutional row -->
-<div class="flex items-center justify-between sm:justify-center sm:gap-14 overflow-x-auto no-scrollbar py-2 text-xs font-mono font-semibold tracking-wider text-brand-muted" data-reveal-stagger="">
-<span class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border" data-reveal="">MSP URUGUAY</span>
-<span class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border" data-reveal="">BPS HABILITACIÓN</span>
-<span class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border" data-reveal="">LEY 18.651</span>
-<span class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border" data-reveal="">UNIT ACCESIBILIDAD</span>
-<span class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border" data-reveal="">FADU · UDELAR</span>
+</div>
+<!-- Cinta en bucle: dos grupos idénticos; la pista se desplaza de 0 a -50% (= un grupo exacto) -->
+<div class="cinta" data-reveal="">
+<div class="cinta-pista text-xs font-mono font-semibold tracking-wider text-brand-muted" id="cinta-pista">
+<ul class="cinta-grupo">
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">MSP URUGUAY</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">BPS HABILITACIÓN</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">LEY 18.651</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">UNIT ACCESIBILIDAD</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">FADU · UDELAR</li>
+</ul>
+<ul aria-hidden="true" class="cinta-grupo cinta-copia">
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">MSP URUGUAY</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">BPS HABILITACIÓN</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">LEY 18.651</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">UNIT ACCESIBILIDAD</li>
+<li class="shrink-0 px-3 py-1 bg-brand-surface rounded border border-brand-border">FADU · UDELAR</li>
+</ul>
 </div>
 </div>
 </section>
 <!-- ========================================================= -->
 <!-- 4. GRID DE FOTOS DESPLAZADAS Y TITULAR CENTRAL            -->
 <!-- ========================================================= -->
-<section class="py-16 sm:py-24 bg-brand-bg relative overflow-hidden">
+<section class="screen-section py-16 sm:py-24 bg-brand-bg relative overflow-hidden">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <!-- Central impact title with sensei grid surrounding it -->
 <div class="relative py-12 px-4 rounded-3xl grid-pattern border border-brand-border bg-white shadow-sm overflow-hidden" data-reveal="">
 <!-- Top displaced small image -->
 <div class="flex justify-end mb-6">
-<div class="w-36 h-28 sm:w-48 sm:h-36 rounded-xl overflow-hidden border border-brand-border shadow-sm transform rotate-1" data-float="">
+<div class="flota flota-1">
+<div class="w-36 h-28 sm:w-48 sm:h-36 rounded-xl overflow-hidden border border-brand-border shadow-sm transform rotate-1">
 <img alt="Planos y diagnóstico de software" class="w-full h-full object-cover" src="img/planos-diagnostico.webp">
+</div>
 </div>
 </div>
 <!-- Central Bold Title -->
@@ -275,11 +469,15 @@
 </div>
 <!-- Bottom two asymmetric displaced images -->
 <div class="flex items-center justify-between gap-4 mt-8">
-<div class="w-32 h-24 sm:w-44 sm:h-32 rounded-xl overflow-hidden border border-brand-border shadow-sm -rotate-2" data-float="">
+<div class="flota flota-2">
+<div class="w-32 h-24 sm:w-44 sm:h-32 rounded-xl overflow-hidden border border-brand-border shadow-sm -rotate-2">
 <img alt="Muestras acústicas y materiales táctiles" class="w-full h-full object-cover" src="img/materiales-tactiles.webp">
 </div>
-<div class="w-36 h-28 sm:w-48 sm:h-36 rounded-xl overflow-hidden border border-brand-border shadow-sm rotate-3" data-float="">
+</div>
+<div class="flota flota-3">
+<div class="w-36 h-28 sm:w-48 sm:h-36 rounded-xl overflow-hidden border border-brand-border shadow-sm rotate-3">
 <img alt="Sala de regulación clínica infantil" class="w-full h-full object-cover" src="img/sala-regulacion.webp">
+</div>
 </div>
 </div>
 </div>
@@ -288,15 +486,15 @@
 <!-- ========================================================= -->
 <!-- 5. SELECTOR DE PERSPECTIVAS (Pill Switch)                 -->
 <!-- ========================================================= -->
-<section class="py-14 sm:py-20 bg-white border-b border-brand-border">
+<section class="screen-section py-16 sm:py-24 bg-white border-b border-brand-border">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <!-- Center Pill Toggle -->
 <div class="flex justify-center mb-10" data-reveal="">
 <div class="inline-flex p-1 bg-brand-surface border border-brand-border rounded-full shadow-inner">
-<button class="px-5 py-2 text-xs font-semibold rounded-full bg-brand-navy text-white shadow-sm transition" id="tab-arq-btn" onclick="togglePerspective('arq')">
+<button aria-controls="perspective-arq" aria-pressed="true" class="pill-tab px-5 py-2 text-xs font-semibold rounded-full" id="tab-arq-btn" onclick="togglePerspective('arq')" type="button">
             Para Arquitectos
           </button>
-<button class="px-5 py-2 text-xs font-medium text-brand-muted hover:text-brand-charcoal transition rounded-full" id="tab-clin-btn" onclick="togglePerspective('clin')">
+<button aria-controls="perspective-clin" aria-pressed="false" class="pill-tab px-5 py-2 text-xs font-semibold rounded-full" id="tab-clin-btn" onclick="togglePerspective('clin')" type="button">
             Para Centros y Clínicas
           </button>
 </div>
@@ -307,25 +505,25 @@
 <div class="border-l-2 border-brand-navy pl-4">
 <h3 class="font-display text-base font-semibold text-brand-charcoal">Rigor proyectual sin trabas en plano</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Integrá cálculo de vanos, luxes y coeficiente de absorción acústica sin necesidad de rehacer carpetas ante devoluciones del MSP o BPS.
+              Revisá acústica, iluminación y circulación con criterios claros, antes de presentar el proyecto.
             </p>
 </div>
 <div class="border-l-2 border-brand-border pl-4">
 <h3 class="font-display text-base font-semibold text-brand-charcoal">Diferenciador competitivo en Uruguay</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Especializate en un nicho en plena demanda donde las instituciones educativas y de salud exigen aval sensorial justificado.
+              Especializate en un tipo de encargo para el que hoy hay muy poca formación en Uruguay.
             </p>
 </div>
 <div class="border-l-2 border-brand-border pl-4">
 <h3 class="font-display text-base font-semibold text-brand-charcoal">Herramienta técnica Diseña ND incluida</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Exportá memorias descriptivas de diagnóstico en PDF con listas de chequeo normativo listas para el legajo de obra.
+              Obtené un informe de diagnóstico con los puntos críticos y recomendaciones para tu memoria de proyecto.
             </p>
 </div>
 </div>
 <div class="md:col-span-6" data-reveal="">
 <div class="rounded-2xl overflow-hidden border border-brand-border bg-brand-surface shadow-sm">
-<img alt="Interfaz técnica de evaluación sensorial" class="w-full h-auto object-cover" src="img/interfaz-disena-nd.webp">
+<img alt="Tablet sobre una mesa de trabajo con planos, mostrando el checklist de la herramienta Diseña ND" class="w-full h-auto object-cover" src="img/tablet-checklist.webp">
 </div>
 </div>
 </div>
@@ -335,19 +533,19 @@
 <div class="border-l-2 border-brand-slate pl-4">
 <h3 class="font-display text-base font-semibold text-brand-charcoal">Reducción de sobrecarga sensorial</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Disminución comprobada de crisis emocionales y desregulación en niños con TEA y TDAH al entrar a salas de espera y consultorios.
+              Arquitectos formados para identificar desde el proyecto los estímulos que más afectan a niños con TEA y TDAH en salas de espera y consultorios.
             </p>
 </div>
 <div class="border-l-2 border-brand-border pl-4">
-<h3 class="font-display text-base font-semibold text-brand-charcoal">Cero parches posteriores costosos</h3>
+<h3 class="font-display text-base font-semibold text-brand-charcoal">Menos correcciones después de abrir</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Evitá gastos imprevistos en cortinados dobles o cielorrasos correctivos una vez inaugurado el centro de atención.
+              Detectar los problemas en el plano ayuda a evitar gastos en cortinados dobles o cielorrasos correctivos una vez inaugurado el centro.
             </p>
 </div>
 <div class="border-l-2 border-brand-border pl-4">
-<h3 class="font-display text-base font-semibold text-brand-charcoal">Espacios seguros y habilitables</h3>
+<h3 class="font-display text-base font-semibold text-brand-charcoal">Criterios claros para decidir</h3>
 <p class="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">
-              Cumplimiento garantizado ante auditorías de MSP y convenios BPS con respaldo documental exhaustivo.
+              Un informe de diagnóstico con los puntos críticos y recomendaciones, para revisar el proyecto con el arquitecto antes de construir.
             </p>
 </div>
 </div>
@@ -362,9 +560,9 @@
 <!-- ========================================================= -->
 <!-- 6. PROGRAMA / MÓDULOS CON LISTA VERTICAL                  -->
 <!-- ========================================================= -->
-<section class="py-16 sm:py-24 bg-brand-bg border-b border-brand-border" id="programa">
+<section class="screen-section py-16 sm:py-24 bg-brand-bg border-b border-brand-border" id="programa">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
-<div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-3" data-reveal="">
+<div class="programa-head flex flex-col sm:flex-row sm:items-end justify-between gap-3" data-reveal="">
 <div>
 <span class="text-[10px] font-mono uppercase tracking-widest text-brand-slate font-semibold block mb-1">METODOLOGÍA FORMATIVA</span>
 <h2 class="font-display text-2xl sm:text-4xl font-semibold tracking-tighter text-brand-charcoal">
@@ -375,151 +573,146 @@
           4 clases en vivo · 8h lectivas · Grabaciones
         </div>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-stretch">
 <!-- Left: Vertical Interactive Module List -->
-<div class="lg:col-span-6 space-y-3" data-reveal-stagger="">
+<div class="lg:col-span-6 modulos-lista" data-reveal-stagger="">
 <!-- Module 1 -->
-<div class="p-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
+<div class="modulo-card px-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
 <span class="w-2.5 h-2.5 rounded-full bg-brand-navy mt-1.5 shrink-0"></span>
-<div>
-<div class="flex items-center gap-2">
+<div class="min-w-0 flex-1">
+<div class="modulo-head" id="modulo-1-head">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <h3 class="font-display text-sm font-semibold text-brand-charcoal">Módulo 1: Normativa y marco local</h3>
 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-surface text-brand-navy border border-brand-border">Semana 1</span>
 </div>
-<p class="text-xs text-brand-muted mt-1 leading-relaxed">
-                Requisitos de habilitación MSP/BPS y Ley 18.651 traducidos a planos concretos de arquitectura.
-              </p>
+<p class="modulo-bajada text-brand-charcoal mt-1">Qué exige la habilitación y cómo llevarlo al proyecto.</p>
 </div>
+<ul class="modulo-items mt-1.5 space-y-0.5 pl-4 list-disc marker:text-brand-subtle text-brand-muted" id="modulo-1-items">
+<li>Requisitos de habilitación de MSP y BPS para centros de atención infantil.</li>
+<li>Ley 18.651 y normas de accesibilidad aplicables.</li>
+<li>Cómo documentar y justificar las decisiones ante los organismos.</li>
+</ul>
+</div>
+<span aria-hidden="true" class="modulo-icon relative w-3.5 h-3.5 shrink-0 mt-1 text-brand-navy"><span class="absolute left-0 top-[6px] w-3.5 h-[1.5px] bg-current"></span><span class="modulo-icon-v absolute top-0 left-[6px] h-3.5 w-[1.5px] bg-current"></span></span>
 </div>
 <!-- Module 2 -->
-<div class="p-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
+<div class="modulo-card px-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
 <span class="w-2.5 h-2.5 rounded-full bg-brand-slate mt-1.5 shrink-0"></span>
-<div>
-<div class="flex items-center gap-2">
+<div class="min-w-0 flex-1">
+<div class="modulo-head" id="modulo-2-head">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <h3 class="font-display text-sm font-semibold text-brand-charcoal">Módulo 2: Neurodiversidad aplicada</h3>
 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-surface text-brand-navy border border-brand-border">Semana 2</span>
 </div>
-<p class="text-xs text-brand-muted mt-1 leading-relaxed">
-                El espacio desde el niño: Hipo e hipersensibilidad, gatillos ambientales y rincones de autorregulación (TEA / TDAH).
-              </p>
+<p class="modulo-bajada text-brand-charcoal mt-1">Cómo perciben el espacio los niños con TEA y TDAH.</p>
 </div>
+<ul class="modulo-items mt-1.5 space-y-0.5 pl-4 list-disc marker:text-brand-subtle text-brand-muted" id="modulo-2-items">
+<li>Hipersensibilidad e hiposensibilidad: qué estímulos afectan y por qué.</li>
+<li>Situaciones de sobrecarga y estrategias de autorregulación.</li>
+<li>Qué observan los equipos terapéuticos en el uso diario del espacio.</li>
+</ul>
+</div>
+<span aria-hidden="true" class="modulo-icon relative w-3.5 h-3.5 shrink-0 mt-1 text-brand-navy"><span class="absolute left-0 top-[6px] w-3.5 h-[1.5px] bg-current"></span><span class="modulo-icon-v absolute top-0 left-[6px] h-3.5 w-[1.5px] bg-current"></span></span>
 </div>
 <!-- Module 3 -->
-<div class="p-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
+<div class="modulo-card px-4 rounded-xl bg-white border border-brand-border shadow-sm flex items-start gap-3" data-lift="" data-reveal="">
 <span class="w-2.5 h-2.5 rounded-full bg-brand-subtle mt-1.5 shrink-0"></span>
-<div>
-<div class="flex items-center gap-2">
+<div class="min-w-0 flex-1">
+<div class="modulo-head" id="modulo-3-head">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 <h3 class="font-display text-sm font-semibold text-brand-charcoal">Módulo 3: Criterios por dimensión</h3>
 <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-surface text-brand-navy border border-brand-border">Semana 3</span>
 </div>
-<p class="text-xs text-brand-muted mt-1 leading-relaxed">
-                Control acústico, iluminación no estroboscópica, temperatura de color y secuencias de transición sin sobrecarga.
-              </p>
+<p class="modulo-bajada text-brand-charcoal mt-1">Decisiones de proyecto para cada aspecto sensorial.</p>
 </div>
+<ul class="modulo-items mt-1.5 space-y-0.5 pl-4 list-disc marker:text-brand-subtle text-brand-muted" id="modulo-3-items">
+<li>Acústica: aislación entre salas y control de la reverberación.</li>
+<li>Iluminación: luz natural regulable y luminarias sin parpadeo.</li>
+<li>Circulación, materialidad, mobiliario, seguridad y espacios de calma.</li>
+</ul>
+</div>
+<span aria-hidden="true" class="modulo-icon relative w-3.5 h-3.5 shrink-0 mt-1 text-brand-navy"><span class="absolute left-0 top-[6px] w-3.5 h-[1.5px] bg-current"></span><span class="modulo-icon-v absolute top-0 left-[6px] h-3.5 w-[1.5px] bg-current"></span></span>
 </div>
 <!-- Module 4 -->
-<div class="p-4 rounded-xl bg-white border border-brand-slate/40 shadow-sm flex items-start gap-3 bg-brand-accent/20" data-lift="" data-reveal="">
+<div class="modulo-card px-4 rounded-xl bg-white border border-brand-slate/40 shadow-sm flex items-start gap-3 bg-brand-accent/20" data-lift="" data-reveal="">
 <span class="w-2.5 h-2.5 rounded-full bg-brand-navy mt-1.5 shrink-0"></span>
-<div>
-<div class="flex items-center gap-2">
-<h3 class="font-display text-sm font-semibold text-brand-charcoal">Módulo 4: Software y diagnóstico técnico</h3>
-<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-accent text-brand-navy font-bold border border-brand-border">Semana 4</span>
+<div class="min-w-0 flex-1">
+<div class="modulo-head" id="modulo-4-head">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<h3 class="font-display text-sm font-semibold text-brand-charcoal">Módulo 4: Herramienta Diseña ND y caso práctico</h3>
+<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-surface text-brand-navy border border-brand-border">Semana 4</span>
 </div>
-<p class="text-xs text-brand-muted mt-1 leading-relaxed">
-                Evaluación de un caso real uruguayo con Diseña ND y exportación de informe técnico PDF para anexar al legajo.
-              </p>
+<p class="modulo-bajada text-brand-charcoal mt-1">Aplicación sobre un caso real uruguayo.</p>
+</div>
+<ul class="modulo-items mt-1.5 space-y-0.5 pl-4 list-disc marker:text-brand-subtle text-brand-muted" id="modulo-4-items">
+<li>Evaluación de un proyecto con el checklist Diseña ND.</li>
+<li>Lectura del diagnóstico y priorización de puntos críticos.</li>
+<li>Incorporación de las recomendaciones a la memoria de proyecto.</li>
+</ul>
+</div>
+<span aria-hidden="true" class="modulo-icon relative w-3.5 h-3.5 shrink-0 mt-1 text-brand-navy"><span class="absolute left-0 top-[6px] w-3.5 h-[1.5px] bg-current"></span><span class="modulo-icon-v absolute top-0 left-[6px] h-3.5 w-[1.5px] bg-current"></span></span>
 </div>
 </div>
+<!-- Right: Tool Screenshot Card -->
+<div class="lg:col-span-6 flex flex-col bg-white rounded-2xl p-4 sm:p-6 border border-brand-border shadow-sm" data-lift="" data-reveal="">
+<div class="border-b border-brand-border pb-3 mb-3 text-xs font-mono text-brand-muted">
+<span class="">Herramienta Diseña ND · Checklist sensorial</span>
 </div>
-<!-- Right: Spatial Scheme Card -->
-<div class="lg:col-span-6 bg-white rounded-2xl p-4 sm:p-6 border border-brand-border shadow-sm" data-lift="" data-reveal="">
-<div class="flex items-center justify-between border-b border-brand-border pb-3 mb-3 text-xs font-mono text-brand-muted">
-<span class="">Esquema Isométrico Sensorial</span>
-<span class="text-brand-navy font-bold">App v1.2</span>
+<!-- En escritorio la captura toma el alto que deja la columna de módulos (object-fit: contain, sin recorte) -->
+<div class="relative rounded-xl overflow-hidden border border-brand-border bg-brand-surface aspect-[4/3] lg:aspect-auto lg:flex-1 lg:min-h-0" id="captura-marco">
+<!-- Recorrido animado: la captura completa al ancho del marco se desplaza hacia abajo (ver estilos .captura-*) -->
+<div class="captura-ventana">
+<img alt="Interfaz del checklist Diseña ND con criterios por dimensión y opciones Cumple, No cumple y No aplica" class="captura-recorrido" decoding="async" height="2000" loading="lazy" src="img/checklist-completo.webp" width="677">
 </div>
-<div class="rounded-xl overflow-hidden border border-brand-border bg-brand-surface">
-<img alt="Checklist de confort y protección sensorial en la herramienta Diseña ND" class="w-full h-auto object-cover" src="img/checklist-app.webp">
 </div>
 <p class="text-[11px] text-brand-muted mt-3 italic text-center">
-            Métricas de reverberación, luxes y zonificación de descanso auditivo integradas.
+            Evaluá cada criterio como Cumple, No cumple o No aplica, y obtené un diagnóstico por dimensión.
           </p>
 </div>
 </div>
 </div>
 </section>
 <!-- ========================================================= -->
-<!-- 7. CARRUSEL / TESTIMONIOS EDITORIALES                     -->
+<!-- 7. INVESTIGACIÓN: FRAGMENTOS DE ENTREVISTAS               -->
 <!-- ========================================================= -->
-<section class="py-16 sm:py-24 bg-white border-b border-brand-border">
+<section class="screen-section py-16 sm:py-24 bg-white border-b border-brand-border" id="investigacion">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
-<div class="flex items-end justify-between mb-8" data-reveal="">
-<div>
-<span class="text-[10px] font-mono uppercase tracking-widest text-brand-slate font-semibold block mb-1">CASOS &amp; TESTIMONIOS</span>
+<div class="mb-8" data-reveal="">
+<span class="text-[10px] font-mono uppercase tracking-widest text-brand-slate font-semibold block mb-1">INVESTIGACIÓN</span>
 <h2 class="font-display text-2xl sm:text-3xl font-semibold tracking-tighter text-brand-charcoal">
-            Historias que respaldan el método
+            Lo que nos contaron arquitectos y centros
           </h2>
 </div>
-<!-- Round Arrow Buttons -->
-<div class="flex items-center gap-2">
-<button aria-label="Anterior testimonio" class="w-9 h-9 rounded-full border border-brand-border flex items-center justify-center text-brand-charcoal hover:bg-brand-surface transition" data-lift="" onclick="prevStory()">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-<button aria-label="Siguiente testimonio" class="w-9 h-9 rounded-full border border-brand-border flex items-center justify-center text-brand-charcoal hover:bg-brand-surface transition" data-lift="" onclick="nextStory()">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
+<!-- Tres fragmentos, atribuidos solo por rol -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6" data-reveal-stagger="">
+<figure class="bg-brand-surface rounded-2xl border border-brand-border p-5 sm:p-8 flex flex-col justify-between gap-6 m-0" data-reveal="">
+<blockquote class="font-display text-base sm:text-lg text-brand-charcoal italic leading-relaxed m-0">
+                «La normativa es muy extensa y difícil de interpretar. Perdés mucho tiempo releyéndola para estar seguro.»
+              </blockquote>
+<figcaption class="text-xs font-bold text-brand-charcoal">Arquitecto con experiencia en clínicas</figcaption>
+</figure>
+<figure class="bg-brand-surface rounded-2xl border border-brand-border p-5 sm:p-8 flex flex-col justify-between gap-6 m-0" data-reveal="">
+<blockquote class="font-display text-base sm:text-lg text-brand-charcoal italic leading-relaxed m-0">
+                «Terminamos poniendo parches para corregir errores del diseño anterior.»
+              </blockquote>
+<figcaption class="text-xs font-bold text-brand-charcoal">Directora de centro interdisciplinario</figcaption>
+</figure>
+<figure class="bg-brand-surface rounded-2xl border border-brand-border p-5 sm:p-8 flex flex-col justify-between gap-6 m-0" data-reveal="">
+<blockquote class="font-display text-base sm:text-lg text-brand-charcoal italic leading-relaxed m-0">
+                «Si me llegara un encargo así, no me sentiría preparado.»
+              </blockquote>
+<figcaption class="text-xs font-bold text-brand-charcoal">Estudiante avanzado de arquitectura</figcaption>
+</figure>
 </div>
-</div>
-<!-- Story Carousel Card -->
-<div class="relative overflow-hidden" data-reveal="">
-<div class="flex transition-transform duration-300 ease-out" id="story-slider">
-<!-- Story 1 -->
-<div class="w-full shrink-0 pr-0 sm:pr-4">
-<div class="bg-brand-surface rounded-2xl border border-brand-border p-5 sm:p-8 flex flex-col md:flex-row gap-6 items-center">
-<div class="w-full md:w-52 h-44 rounded-xl overflow-hidden shrink-0 border border-brand-border">
-<img alt="Estudio de arquitectura" class="w-full h-full object-cover" src="img/estudio-arquitectura.webp">
-</div>
-<div>
-<span class="inline-block text-[10px] font-mono uppercase tracking-wider text-brand-navy bg-white border border-brand-border px-2.5 py-0.5 rounded-full mb-3 font-medium">
-                  Estudio de Arquitectura · Montevideo
-                </span>
-<p class="font-display text-base sm:text-lg text-brand-charcoal italic leading-relaxed mb-4">
-                  «La normativa uruguaya suele ser extensa y confusa en lo sensorial. Con Diseña ND pasamos de dudar en cada detalle acústico a tener un checklist claro y defendible.»
-                </p>
-<div class="text-xs">
-<p class="font-bold text-brand-charcoal">Arq. Especialista Proyectual</p>
-<p class="text-brand-muted text-[11px]">Ejercicio independiente en clínicas de salud</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Story 2 -->
-<div class="w-full shrink-0 pr-0 sm:pr-4">
-<div class="bg-brand-surface rounded-2xl border border-brand-border p-5 sm:p-8 flex flex-col md:flex-row gap-6 items-center">
-<div class="w-full md:w-52 h-44 rounded-xl overflow-hidden shrink-0 border border-brand-border">
-<img alt="Centro terapéutico" class="w-full h-full object-cover" src="img/sala-sensorial.webp">
-</div>
-<div>
-<span class="inline-block text-[10px] font-mono uppercase tracking-wider text-brand-navy bg-white border border-brand-border px-2.5 py-0.5 rounded-full mb-3 font-medium">
-                  Centro de Atención Infantil · Canelones
-                </span>
-<p class="font-display text-base sm:text-lg text-brand-charcoal italic leading-relaxed mb-4">
-                  «Terminábamos poniendo parches y cortinas acústicas para corregir la sala. Ahora los arquitectos entienden qué gatillos sensoriales hay que mitigar desde el plano.»
-                </p>
-<div class="text-xs">
-<p class="font-bold text-brand-charcoal">Directora de Centro Interdisciplinario</p>
-<p class="text-brand-muted text-[11px]">Atención integral pediátrica</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<p class="text-[11px] text-brand-muted mt-4" data-reveal="">
+          Fragmentos de entrevistas realizadas durante la investigación del proyecto.
+        </p>
 </div>
 </section>
 <!-- ========================================================= -->
 <!-- 8. CIFRAS CLAVE                                           -->
 <!-- ========================================================= -->
-<section class="py-14 sm:py-20 bg-brand-bg border-b border-brand-border">
+<section class="screen-section py-16 sm:py-24 bg-brand-bg border-b border-brand-border">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-brand-border" data-reveal-stagger="">
 <div class="pt-4 md:pt-0" data-reveal="">
@@ -549,7 +742,7 @@
 <!-- ========================================================= -->
 <!-- 9. PRECIO TRANSPARENTE & FORMULARIO DE PREINSCRIPCIÓN      -->
 <!-- ========================================================= -->
-<section class="py-16 sm:py-24 bg-white border-b border-brand-border scroll-mt-14" id="preinscripcion">
+<section class="screen-section py-16 sm:py-24 bg-white border-b border-brand-border scroll-mt-14" id="preinscripcion">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start" data-reveal-stagger="">
 <!-- Left: Inviolable Price Card -->
@@ -583,7 +776,7 @@
 <svg class="w-4 h-4 text-brand-slate shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
 <path clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill-rule="evenodd"></path>
 </svg>
-<p class="text-xs sm:text-sm text-brand-charcoal"><strong>Modelo de informe de diagnóstico:</strong> memorias sensoriales descriptivas para habilitación.</p>
+<p class="text-xs sm:text-sm text-brand-charcoal"><strong>Informe de diagnóstico:</strong> puntos críticos y recomendaciones de proyecto.</p>
 </div>
 <div class="flex items-start gap-2.5">
 <svg class="w-4 h-4 text-brand-slate shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -728,7 +921,7 @@
 <!-- ========================================================= -->
 <!-- 9b. PREGUNTAS FRECUENTES (Acordeón)                        -->
 <!-- ========================================================= -->
-<section class="py-16 sm:py-24 bg-brand-bg border-b border-brand-border" id="faq">
+<section class="screen-section py-16 sm:py-24 bg-brand-bg border-b border-brand-border" id="faq">
 <div class="max-w-7xl mx-auto px-5 sm:px-8">
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 <div class="lg:col-span-4" data-reveal="">
@@ -823,12 +1016,12 @@
 <!-- Top Closing Statement -->
 <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-16 pb-12 border-b border-brand-border" data-reveal-stagger="">
 <div class="md:col-span-6" data-reveal="">
-<span class="text-[10px] font-mono uppercase tracking-widest text-brand-navy font-bold block mb-2">PRIMERA EDICIÓN 2025</span>
+<span class="text-[10px] font-mono uppercase tracking-widest text-brand-navy font-bold block mb-2">PRIMERA EDICIÓN 2027</span>
 <h2 class="font-display text-3xl sm:text-5xl font-bold tracking-tighter leading-tight text-brand-charcoal">
             Proyectá con criterio desde el primer trazo.
           </h2>
 <div class="mt-6">
-<a class="min-touch-target inline-flex items-center px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-brand-navy hover:bg-brand-charcoal border border-brand-navy transition shadow-sm" data-lift="" href="#preinscripcion">
+<a class="min-touch-target inline-flex items-center px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-brand-navy hover:bg-brand-charcoal border border-brand-navy transition shadow-sm" data-goatcounter-click="clic-preinscribirme-pie" data-goatcounter-title="Preinscribirme ahora (pie)" data-lift="" href="#preinscripcion">
               Preinscribirme ahora
               <svg class="w-4 h-4 ml-1.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
 </a>
@@ -841,7 +1034,7 @@
 <ul class="space-y-2 text-brand-muted">
 <li class=""><a class="hover:text-brand-charcoal underline" href="#programa">Programa 8h</a></li>
 <li class=""><span class="">Modalidad Online</span></li>
-<li class=""><span class="">Mayo 2025</span></li>
+<li class=""><span class="">Inicio: 15 de marzo de 2027</span></li>
 <li class=""></li>
 </ul>
 </div>
@@ -849,7 +1042,7 @@
 <h4 class="font-display font-bold uppercase tracking-wider text-brand-charcoal mb-3">Herramienta</h4>
 <ul class="space-y-2 text-brand-muted">
 <li class=""><span class="">Módulos sensoriales</span></li>
-<li class=""><span class="">Checklist MSP/BPS</span></li>
+<li class=""><span class="">Checklist sensorial</span></li>
 <li class=""><span class="">Exportación PDF</span></li>
 <li class=""><span class="">Casos de estudio</span></li>
 </ul>
@@ -870,7 +1063,7 @@
           Aviso legal: Diseña ND es una herramienta formativa y de diagnóstico proyectual orientativo, y no sustituye la verificación de firmas ni la responsabilidad técnica final del arquitecto ante las autoridades habilitantes.
         </p>
 <div class="font-mono shrink-0 text-brand-subtle">
-          © 2025 Diseña ND. Todos los derechos reservados.
+          © 2026 Diseña ND. Todos los derechos reservados.
         </div>
 </div>
 <!-- Giant Full-bleed Typography "DISEÑA ND" in Subtle Slate/Charcoal Tint -->
@@ -891,41 +1084,13 @@
       const clinContent = document.getElementById('perspective-clin');
       const arqBtn = document.getElementById('tab-arq-btn');
       const clinBtn = document.getElementById('tab-clin-btn');
+      const isArq = type === 'arq';
 
-      if (type === 'arq') {
-        arqContent.classList.remove('hidden');
-        clinContent.classList.add('hidden');
-        arqBtn.classList.add('bg-brand-navy', 'text-white');
-        arqBtn.classList.remove('text-brand-muted');
-        clinBtn.classList.remove('bg-brand-navy', 'text-white');
-        clinBtn.classList.add('text-brand-muted');
-      } else {
-        clinContent.classList.remove('hidden');
-        arqContent.classList.add('hidden');
-        clinBtn.classList.add('bg-brand-navy', 'text-white');
-        clinBtn.classList.remove('text-brand-muted');
-        arqBtn.classList.remove('bg-brand-navy', 'text-white');
-        arqBtn.classList.add('text-brand-muted');
-      }
-    }
-
-    // 2. Story Carousel Logic
-    let currentStory = 0;
-    const storyCount = 2;
-    const slider = document.getElementById('story-slider');
-
-    function updateSlider() {
-      slider.style.transform = `translateX(-${currentStory * 100}%)`;
-    }
-
-    function nextStory() {
-      currentStory = (currentStory + 1) % storyCount;
-      updateSlider();
-    }
-
-    function prevStory() {
-      currentStory = (currentStory - 1 + storyCount) % storyCount;
-      updateSlider();
+      arqContent.classList.toggle('hidden', !isArq);
+      clinContent.classList.toggle('hidden', isArq);
+      // El estilo activo/inactivo lo define CSS (.pill-tab[aria-pressed]), así no hay clases que se pisen
+      arqBtn.setAttribute('aria-pressed', String(isArq));
+      clinBtn.setAttribute('aria-pressed', String(!isArq));
     }
 
     // 3. Form Validation & Submission
@@ -1058,6 +1223,117 @@
       comentarioContador.textContent = comentarioField.value.length + ' / 500';
     }
     comentarioField.addEventListener('input', actualizarContador);
+
+    // Flotación de fotos: se pausa cuando no está en pantalla (ahorra batería en celular)
+    (function () {
+      var fotos = document.querySelectorAll('.flota');
+      if (!fotos.length || !('IntersectionObserver' in window)) return;
+      fotos.forEach(function (f) { f.classList.add('flota-pausa'); });
+      var io = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (e) { e.target.classList.toggle('flota-pausa', !e.isIntersecting); });
+      }, { rootMargin: '80px' });
+      fotos.forEach(function (f) { io.observe(f); });
+    })();
+
+    // 5. Recorrido animado de la captura del checklist (sección de módulos)
+    //    Arriba: fundido de entrada + pausa · recorrido lineal a velocidad constante · pausa abajo + fundido de salida
+    (function () {
+      var marco = document.getElementById('captura-marco');
+      if (!marco) return;
+      var img = marco.querySelector('.captura-recorrido');
+      var hoja = document.createElement('style');
+      document.head.appendChild(hoja);
+      var VELOCIDAD = 35;  // px por segundo
+      var PAUSA = 2;       // segundos arriba y abajo
+      var FUNDIDO = 0.6;   // segundos de cada fundido
+      var ultimo = '';
+
+      function calcular() {
+        var altoMarco = marco.clientHeight;
+        var altoImg = img.getBoundingClientRect().height;
+        if (!altoMarco || !altoImg) return;
+        var clave = altoMarco + 'x' + Math.round(altoImg);
+        if (clave === ultimo) return;
+        ultimo = clave;
+        var recorrido = Math.round(altoImg - altoMarco);
+        if (recorrido < 10) { marco.classList.remove('captura-anim'); return; }
+
+        var tiempoRecorrido = recorrido / VELOCIDAD;
+        var total = FUNDIDO + PAUSA + tiempoRecorrido + PAUSA + FUNDIDO;
+        var t1 = FUNDIDO, t2 = t1 + PAUSA, t3 = t2 + tiempoRecorrido, t4 = t3 + PAUSA;
+        var pct = function (s) { return (s / total * 100).toFixed(4) + '%'; };
+        var abajo = 'translateY(calc(-1 * var(--recorrido)))';
+        hoja.textContent = '@keyframes captura-recorrer {' +
+          '0% { transform: translateY(0); opacity: 0; animation-timing-function: ease-out; }' +
+          pct(t1) + ' { transform: translateY(0); opacity: 1; animation-timing-function: linear; }' +
+          pct(t2) + ' { transform: translateY(0); opacity: 1; animation-timing-function: linear; }' +
+          pct(t3) + ' { transform: ' + abajo + '; opacity: 1; animation-timing-function: linear; }' +
+          pct(t4) + ' { transform: ' + abajo + '; opacity: 1; animation-timing-function: ease-in; }' +
+          '100% { transform: ' + abajo + '; opacity: 0; }' +
+          '}';
+        marco.style.setProperty('--recorrido', recorrido + 'px');
+        marco.style.setProperty('--captura-dur', total.toFixed(3) + 's');
+        marco.classList.add('captura-anim');
+      }
+
+      var espera;
+      function programar() { clearTimeout(espera); espera = setTimeout(calcular, 150); }
+      if (img.complete) calcular(); else img.addEventListener('load', calcular);
+      window.addEventListener('resize', programar);
+      if ('ResizeObserver' in window) new ResizeObserver(programar).observe(marco);
+
+      // Pausa cuando no está en pantalla
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (e) {
+          marco.classList.toggle('captura-pausa', !e[0].isIntersecting);
+        }, { rootMargin: '80px' }).observe(marco);
+      }
+    })();
+
+    // 4. Cinta "Marco regulatorio": velocidad constante en cualquier pantalla
+    (function () {
+      var pista = document.getElementById('cinta-pista');
+      if (!pista) return;
+      var cinta = pista.parentElement;
+      var grupos = Array.prototype.slice.call(pista.querySelectorAll('.cinta-grupo'));
+      var originales = Array.prototype.slice.call(grupos[0].children);
+      var VELOCIDAD = 50; // px por segundo
+      var reducir = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var ultimoAncho = 0;
+
+      function ajustar() {
+        pista.querySelectorAll('.cinta-extra').forEach(function (el) { el.remove(); });
+        if (reducir.matches) return;
+        // Cada grupo tiene que cubrir al menos el ancho visible; si la lista es más corta
+        // (pantallas anchas), se repite dentro de ambos grupos para que nunca quede un hueco.
+        var anchoVisible = cinta.clientWidth;
+        var anchoLista = grupos[0].getBoundingClientRect().width; // incluye el padding-right (= gap)
+        var repeticiones = Math.max(0, Math.ceil(anchoVisible / anchoLista) - 1);
+        for (var r = 0; r < repeticiones; r++) {
+          grupos.forEach(function (g) {
+            originales.forEach(function (li) {
+              var copia = li.cloneNode(true);
+              copia.classList.add('cinta-extra');
+              copia.setAttribute('aria-hidden', 'true');
+              g.appendChild(copia);
+            });
+          });
+        }
+        // Duración según el ancho real de un grupo (lo que recorre en un ciclo)
+        var anchoGrupo = grupos[0].getBoundingClientRect().width;
+        pista.style.setProperty('--cinta-duracion', (anchoGrupo / VELOCIDAD).toFixed(2) + 's');
+        ultimoAncho = anchoVisible;
+      }
+
+      ajustar();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustar);
+      var espera;
+      window.addEventListener('resize', function () {
+        clearTimeout(espera);
+        espera = setTimeout(function () { if (cinta.clientWidth !== ultimoAncho) ajustar(); }, 200);
+      });
+      if (reducir.addEventListener) reducir.addEventListener('change', ajustar);
+    })();
   </script>
 <!-- ========================================================= -->
 <!-- MOTION: animaciones sutiles de bajo estímulo               -->
@@ -1117,6 +1393,90 @@
         });
       });
 
+      // ---------- Módulos: acordeón solo en escritorio con poca altura ----------
+      // En pantallas altas los 4 módulos se ven completos. Si la ventana es baja (ej. laptop 1366×768,
+      // ~657 px visibles), las viñetas pasan a acordeón: un módulo abierto a la vez, el 1 por defecto.
+      (function () {
+        var lista = document.querySelector('#programa .modulos-lista');
+        if (!lista) return;
+        var modoMQ = window.matchMedia('(min-width: 1024px) and (max-height: 740px)');
+        var cards = Array.prototype.slice.call(lista.querySelectorAll('.modulo-card'));
+        var abierto = 0;
+        var activo = false;
+
+        function partes(i) {
+          var c = cards[i];
+          return { card: c, head: c.querySelector('.modulo-head'), items: c.querySelector('.modulo-items'), icono: c.querySelector('.modulo-icon-v') };
+        }
+
+        function mostrar(i, abrir, animar) {
+          var p = partes(i);
+          p.head.setAttribute('aria-expanded', String(abrir));
+          if (p.items._anim) { p.items._anim.stop(); p.items._anim = null; }
+          if (!animar || !motionOn || !M) {
+            p.items.hidden = !abrir;
+            p.items.style.height = p.items.style.opacity = p.items.style.overflow = '';
+            if (p.icono) p.icono.style.opacity = abrir ? '0' : '';
+            return;
+          }
+          var desde = p.items.hidden ? 0 : p.items.getBoundingClientRect().height;
+          p.items.hidden = false;
+          p.items.style.overflow = 'hidden';
+          var hasta = abrir ? p.items.scrollHeight : 0;
+          if (p.icono) M.animate(p.icono, { opacity: abrir ? 0 : 1 }, { duration: 0.4, ease: EASE });
+          var anim = M.animate(p.items, { height: [desde + 'px', hasta + 'px'], opacity: abrir ? [desde ? 1 : 0, 1] : [1, 0] }, { duration: 0.5, ease: EASE });
+          p.items._anim = anim;
+          anim.then(function () {
+            if (p.items._anim !== anim) return;
+            p.items._anim = null;
+            p.items.style.height = p.items.style.opacity = p.items.style.overflow = '';
+            if (!abrir) p.items.hidden = true;
+          });
+        }
+
+        function abrirModulo(i) {
+          if (!activo || i === abierto) return;
+          var anterior = abierto;
+          abierto = i;
+          mostrar(anterior, false, true);
+          mostrar(i, true, true);
+        }
+
+        function aplicarModo() {
+          activo = modoMQ.matches;
+          lista.classList.toggle('modulos-acordeon', activo);
+          cards.forEach(function (c, i) {
+            var p = partes(i);
+            if (activo) {
+              p.head.setAttribute('role', 'button');
+              p.head.setAttribute('tabindex', '0');
+              p.head.setAttribute('aria-controls', p.items.id);
+              mostrar(i, i === abierto, false);
+            } else {
+              ['role', 'tabindex', 'aria-controls', 'aria-expanded'].forEach(function (a) { p.head.removeAttribute(a); });
+              mostrar(i, true, false);
+              if (p.icono) p.icono.style.opacity = '';
+            }
+          });
+        }
+
+        cards.forEach(function (c, i) {
+          c.addEventListener('click', function (e) {
+            if (!activo || e.target.closest('.modulo-items')) return;
+            abrirModulo(i);
+          });
+          partes(i).head.addEventListener('keydown', function (e) {
+            if (!activo || (e.key !== 'Enter' && e.key !== ' ')) return;
+            e.preventDefault();
+            abrirModulo(i);
+          });
+        });
+
+        aplicarModo();
+        if (modoMQ.addEventListener) modoMQ.addEventListener('change', aplicarModo);
+        window.addEventListener('resize', function () { if (modoMQ.matches !== activo) aplicarModo(); });
+      })();
+
       if (!motionOn) return;
 
       var animate = M.animate, inView = M.inView, stagger = M.stagger, hover = M.hover;
@@ -1152,24 +1512,7 @@
         }, viewOpts);
       });
 
-      // ---------- 3. Flotación lenta de las fotos (se pausa fuera de pantalla) ----------
-      // Se anima la propiedad CSS `translate`, independiente del `rotate-*` de Tailwind.
-      document.querySelectorAll('[data-float]').forEach(function (el, i) {
-        var amp = [5, 4, 6][i % 3];
-        var anim = animate(el, { translate: ['0px 0px', '0px -' + amp + 'px'] }, {
-          duration: [7, 8.5, 7.5][i % 3],
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'mirror',
-          delay: i * 0.9
-        });
-        anim.pause();
-        floats.push({ el: el, anim: anim });
-        inView(el, function () {
-          anim.play();
-          return function () { anim.pause(); };
-        }, { margin: '80px' });
-      });
+      // ---------- 3. Flotación de las fotos: ahora es CSS (.flota), ver los estilos ----------
 
       // ---------- 4. Selector de perspectivas: fundido cruzado ----------
       var baseToggle = window.togglePerspective;
